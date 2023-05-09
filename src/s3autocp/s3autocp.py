@@ -117,7 +117,13 @@ def _get_args() -> Tuple[str, str]:
         help="destination s3 url",
     )
     args = parser.parse_args()
-    return args.source[0], args.destination[0]
+    source = args.source[0]
+    if source.endswith("/"):
+        source = source[:-1]
+    destination = args.destination[0]
+    if destination.endswith("/"):
+        destination = destination[:-1]
+    return source, destination
 
 
 def _get_filenames(source_dir: str) -> Iterator[str]:
@@ -133,9 +139,9 @@ def _filename_contains_hash(filename: str) -> bool:
 
 def _get_cache_control(filename: str) -> str:
     if _filename_contains_hash(filename=filename):
-        return "infinite"
+        return "max-age=31536000, immutable"
     else:
-        return "must-revalidate"
+        return "no-cache"
 
 
 def _get_bucket_name_and_path(destination: str, source: str) -> Tuple[str, str]:
@@ -163,19 +169,18 @@ def _copy(filename: str, bucket: str, key: str) -> None:
         )
 
 
-if __name__ == "__main__":
+def s3autocp():
     source, destination = _get_args()
     bucket_name, path = _get_bucket_name_and_path(
         destination=destination, source=source
     )
-    print(bucket_name)
     for filename in _get_filenames(source_dir=source):
         if "index.htm" not in filename:
-            key = f'{path}/{filename.replace(source, "").replace("//", "/")}'
+            key = f'{path}{filename.replace(source, "").replace("//", "/")}'
             _copy(filename=filename, bucket=bucket_name, key=key)
             print(f"upload: {filename} s3://{bucket_name}/{key}")
     for filename in _get_filenames(source_dir=source):
         if "index.htm" in filename:
-            key = f'{path}/{filename.replace(source, "").replace("//", "/")}'
+            key = f'{path}{filename.replace(source, "").replace("//", "/")}'
             _copy(filename=filename, bucket=bucket_name, key=key)
             print(f"upload: {filename} s3://{bucket_name}/{key}")
