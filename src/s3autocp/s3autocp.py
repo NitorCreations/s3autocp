@@ -182,6 +182,8 @@ def s3autocp():
     )
     for filename in filenames:
         key = f'{path}{filename.replace(source, "").replace("//", "/")}'
+        if key.startswith("/"):
+            key = key[1:]
         _copy(filename=filename, bucket=bucket_name, key=key)
         print(f"upload: {filename} s3://{bucket_name}/{key}")
 
