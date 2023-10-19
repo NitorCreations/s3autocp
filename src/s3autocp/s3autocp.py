@@ -174,13 +174,17 @@ def s3autocp():
     bucket_name, path = _get_bucket_name_and_path(
         destination=destination, source=source
     )
-    for filename in _get_filenames(source_dir=source):
-        if "index.htm" not in filename:
-            key = f'{path}{filename.replace(source, "").replace("//", "/")}'
-            _copy(filename=filename, bucket=bucket_name, key=key)
-            print(f"upload: {filename} s3://{bucket_name}/{key}")
-    for filename in _get_filenames(source_dir=source):
-        if "index.htm" in filename:
-            key = f'{path}{filename.replace(source, "").replace("//", "/")}'
-            _copy(filename=filename, bucket=bucket_name, key=key)
-            print(f"upload: {filename} s3://{bucket_name}/{key}")
+    # sort filenames so that files matching index.htm are last.
+    # This ensures that new index.html pointing to new hashed files is not served prior to hashed files being uploaded
+    filenames = sorted(
+        _get_filenames(source_dir=source),
+        key=lambda filename: "index.htm" in filename,
+    )
+    for filename in filenames:
+        key = f'{path}{filename.replace(source, "").replace("//", "/")}'
+        _copy(filename=filename, bucket=bucket_name, key=key)
+        print(f"upload: {filename} s3://{bucket_name}/{key}")
+
+
+if __name__ == "__main__":
+    s3autocp()
