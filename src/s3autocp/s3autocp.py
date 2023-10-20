@@ -98,8 +98,7 @@ def _get_mime_type(filename: str) -> str:
     extension = parts[-1]
     if extension in ("gz", "br") and parts[-2] in mime_types:
         extension = parts[-2]
-    mime_type = mime_types.get(extension, DEFAULT_CONTENT_TYPE)
-    return f"{mime_type}"
+    return mime_types.get(extension, DEFAULT_CONTENT_TYPE)
 
 
 def _get_args() -> Tuple[str, str]:
@@ -137,8 +136,8 @@ def _filename_contains_hash(filename: str) -> bool:
     return bool(HASH_IN_FILENAME_REGEX.match(filename))
 
 
-def _get_cache_control(filename: str) -> str:
-    if _filename_contains_hash(filename=filename):
+def _get_cache_control(filename: str, content_type: str) -> str:
+    if _filename_contains_hash(filename=filename) or content_type.startswith("font/"):
         return "max-age=31536000, immutable"
     else:
         return "no-cache"
@@ -154,8 +153,8 @@ def _get_bucket_name_and_path(destination: str, source: str) -> Tuple[str, str]:
 
 
 def _copy(filename: str, bucket: str, key: str) -> None:
-    cache_control = _get_cache_control(filename=filename)
     content_type = _get_mime_type(filename=filename)
+    cache_control = _get_cache_control(filename=filename, content_type=content_type)
     res = s3_client.put_object(
         Body=open(filename, "rb"),
         Bucket=bucket,
