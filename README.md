@@ -11,7 +11,7 @@
 
 ## Requirements
 
-- Python 3.11
+- Python 3.9
 - `boto3` library
 - `brotli` library
 - `gzip` library
