@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "s3autocp"
-version = "0.0.6"
+version = "0.1.0"
 authors = [
   { name = "Jouni Tenhunen", email = "jouni.tenhunen@nitor.com" },
   { name = "Kalle Ahlström", email = "kalle.ahlstrom@nitor.com" },
@@ -17,7 +17,7 @@ classifiers = [
   "License :: OSI Approved :: Apache Software License",
   "Operating System :: OS Independent",
 ]
-dependencies = ["boto3"]
+dependencies = ["boto3", "brotli"]
 
 [project.urls]
 "Homepage" = "https://github.com/NitorCreations/s3autocp"
