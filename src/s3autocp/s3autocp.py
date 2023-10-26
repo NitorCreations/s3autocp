@@ -119,6 +119,9 @@ def _get_args() -> Tuple[str, str]:
         description="Copy a local directory to S3 with guessed Content-Types"
     )
     parser.add_argument(
+        "-c", "--compress", action="store_true", default=False, help="compress compressable files using brotli and gzip"
+    )
+    parser.add_argument(
         "source", metavar="source", type=str, nargs=1, help="source directory"
     )
     parser.add_argument(
@@ -129,13 +132,14 @@ def _get_args() -> Tuple[str, str]:
         help="destination s3 url",
     )
     args = parser.parse_args()
+    compress = args.compress
     source = args.source[0]
     if source.endswith("/"):
         source = source[:-1]
     destination = args.destination[0]
     if destination.endswith("/"):
         destination = destination[:-1]
-    return source, destination
+    return compress, source, destination
 
 
 def _get_filenames(source_dir: str) -> Iterator[str]:
@@ -204,7 +208,7 @@ def _upload(filename:str, bucket: str, path: str, source_dir: str) -> None:
 
 
 def s3autocp():
-    source, destination = _get_args()
+    compress, source, destination = _get_args()
     bucket_name, path = _get_bucket_name_and_path(
         destination=destination, source=source
     )
@@ -214,15 +218,16 @@ def s3autocp():
         _get_filenames(source_dir=source),
         key=lambda filename: "index.htm" in filename,
     )
-    print("compressing files...", end="")
-    pool = multiprocessing.Pool()
-    compressed_files = pool.map(_compress_file, filenames)
-    pool.close()
-    pool.join()
-    print("done!")
-    for filename in compressed_files:
-        if filename:
-            filenames += [f"{filename}.br", f"{filename}.gz"]
+    if compress:
+        print("compressing files...", end="")
+        pool = multiprocessing.Pool()
+        compressed_files = pool.map(_compress_file, filenames)
+        pool.close()
+        pool.join()
+        print("done!")
+        for filename in compressed_files:
+            if filename:
+                filenames += [f"{filename}.br", f"{filename}.gz"]
     filenames = set(filenames)            
     for filename in sorted(filenames):
         _upload(filename=filename, bucket=bucket_name, path=path, source_dir=source)
