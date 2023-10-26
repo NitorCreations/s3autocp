@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "s3autocp"
-version = "0.1.0"
+version = "0.1.1"
 authors = [
   { name = "Jouni Tenhunen", email = "jouni.tenhunen@nitor.com" },
   { name = "Kalle Ahlström", email = "kalle.ahlstrom@nitor.com" },
 ]
 description = "A tool for copying build folders to S3 with guessed Content-Type and Cache-Control"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.11"
 classifiers = [
   "Programming Language :: Python :: 3",
   "License :: OSI Approved :: Apache Software License",
