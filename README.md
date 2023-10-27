@@ -51,4 +51,4 @@ Contributions, issues, and feature requests are welcome. Feel free to check [iss
 
 ## License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the Apache License. See `LICENSE` for more information.
