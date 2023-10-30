@@ -101,6 +101,59 @@ MIME_TYPES = {
     "7z": "application/x-7z-compressed",
 }
 
+# as per https://developers.cloudflare.com/speed/optimization/content/brotli/content-compression/#compression-between-cloudflare-and-website-visitors
+MIME_TYPES_TO_COMPRESS = set(
+    [
+        "text/html",
+        "text/richtext",
+        "text/plain",
+        "text/css",
+        "text/x-script",
+        "text/x-component",
+        "text/x-java-source",
+        "text/x-markdown",
+        "application/javascript",
+        "application/x-javascript",
+        "text/javascript",
+        "text/js",
+        "image/x-icon",
+        "image/vnd.microsoft.icon",
+        "application/x-perl",
+        "application/x-httpd-cgi",
+        "text/xml",
+        "application/xml",
+        "application/rss+xml",
+        "application/vnd.api+json",
+        "application/x-protobuf",
+        "application/json",
+        "multipart/bag",
+        "multipart/mixed",
+        "application/xhtml+xml",
+        "font/ttf",
+        "font/otf",
+        "font/x-woff",
+        "image/svg+xml",
+        "application/vnd.ms-fontobject",
+        "application/ttf",
+        "application/x-ttf",
+        "application/otf",
+        "application/x-otf",
+        "application/truetype",
+        "application/opentype",
+        "application/x-opentype",
+        "application/font-woff",
+        "application/eot",
+        "application/font",
+        "application/font-sfnt",
+        "application/wasm",
+        "application/javascript-binast",
+        "application/manifest+json",
+        "application/ld+json",
+        "application/graphql+json",
+        "application/geo+json",
+    ]
+)
+
 
 def _get_mime_type(filename: str) -> str:
     parts = filename.split(".")
@@ -109,17 +162,29 @@ def _get_mime_type(filename: str) -> str:
         extension = parts[-2]
     return MIME_TYPES.get(extension, DEFAULT_CONTENT_TYPE)
 
+
 def _should_compress(filename: str) -> bool:
+    mime_type = _get_mime_type(filename)
     non_text_compressibles = ["json", "map", "svg", "ico", "yaml", "yml", "xml"]
-    compressibles = [key for key, value in MIME_TYPES.items() if value.startswith("text")] + non_text_compressibles
-    return filename.split(".")[-1] in compressibles
+    compressibles = [
+        key for key, value in MIME_TYPES.items() if value.startswith("text")
+    ] + non_text_compressibles
+    file_ext = filename.split(".")[-1]
+    return file_ext in compressibles or (
+        mime_type in MIME_TYPES_TO_COMPRESS and file_ext not in ["gz", "br"]
+    )
+
 
 def _get_args() -> Tuple[str, str]:
     parser = argparse.ArgumentParser(
         description="Copy a local directory to S3 with guessed Content-Types"
     )
     parser.add_argument(
-        "-c", "--compress", action="store_true", default=False, help="compress compressable files using brotli and gzip"
+        "-c",
+        "--compress",
+        action="store_true",
+        default=False,
+        help="compress compressable files using brotli and gzip",
     )
     parser.add_argument(
         "source", metavar="source", type=str, nargs=1, help="source directory"
@@ -187,19 +252,20 @@ def _copy(filename: str, bucket: str, key: str) -> None:
 
 def _compress_file(filename: str) -> list[str]:
     if _should_compress(filename):
-        with open(filename, 'rb') as f_input:
+        with open(filename, "rb") as f_input:
             data = f_input.read()
         brotli_data = brotli.compress(data, quality=11)
         gzip_data = gzip.compress(data, compresslevel=9)
-        with open(f"{filename}.br", 'wb') as f_output:
+        with open(f"{filename}.br", "wb") as f_output:
             f_output.write(brotli_data)
-        with open(f"{filename}.gz", 'wb') as f_output:
+        with open(f"{filename}.gz", "wb") as f_output:
             f_output.write(gzip_data)
         return filename
     else:
         return None
 
-def _upload(filename:str, bucket: str, path: str, source_dir: str) -> None:
+
+def _upload(filename: str, bucket: str, path: str, source_dir: str) -> None:
     key = f'{path}{filename.replace(source_dir, "").replace("//", "/")}'
     if key.startswith("/"):
         key = key[1:]
@@ -228,7 +294,7 @@ def s3autocp():
         for filename in compressed_files:
             if filename:
                 filenames += [f"{filename}.br", f"{filename}.gz"]
-    filenames = set(filenames)            
+    filenames = set(filenames)
     for filename in sorted(filenames):
         _upload(filename=filename, bucket=bucket_name, path=path, source_dir=source)
 
