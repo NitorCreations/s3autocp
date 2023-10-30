@@ -244,6 +244,9 @@ def _get_bucket_name_and_path(destination: str, source: str) -> Tuple[str, str]:
 def _copy(filename: str, bucket: str, key: str) -> None:
     content_type = _get_mime_type(filename=filename)
     cache_control = _get_cache_control(filename=filename, content_type=content_type)
+    print(
+        f"upload: {filename} s3://{bucket}/{key}, Content-Type={content_type}, Cache-Control={cache_control}"
+    )
     res = s3_client.put_object(
         Body=open(filename, "rb"),
         Bucket=bucket,
@@ -278,7 +281,6 @@ def _upload(filename: str, bucket: str, path: str, source_dir: str) -> None:
     if key.startswith("/"):
         key = key[1:]
     _copy(filename=filename, bucket=bucket, key=key)
-    print(f"upload: {filename} s3://{bucket}/{key}")
 
 
 def s3autocp():
