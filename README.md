@@ -21,12 +21,18 @@
 Make sure you have Python 3 installed. Then, install the required dependencies:
 
 ```bash
+pip install s3autocp
+```
+
+## Development
+
+```bash
 pip install boto3 brotli
 ```
 
 ## Usage
 
-```python s3autocp.py [-c/--compress] <source_directory> <destination_s3_url>```
+```s3autocp [-c/--compress] <source_directory> <destination_s3_url>```
 
 - `-c/--compress`: Enable compression for appropriate file types
 - `<source_directory>`: The local directory you wish to copy to S3.
@@ -34,7 +40,7 @@ pip install boto3 brotli
 
 ## Example
 
-```python s3autocp.py ./my-local-dir s3://my-bucket/my-path```
+```s3autocp ./my-local-dir s3://my-bucket/my-path```
 
 This command will copy all files from `./my-local-dir` to the S3 bucket `my-bucket` under the `my-path` directory.
 
