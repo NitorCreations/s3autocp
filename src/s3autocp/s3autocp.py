@@ -221,6 +221,13 @@ def _filename_contains_hash(filename: str) -> bool:
 def _get_cache_control(filename: str, content_type: str) -> str:
     if _filename_contains_hash(filename=filename) or content_type.startswith("font/"):
         return "max-age=31536000, immutable"
+    # cache image/video and audio files for half an hour
+    elif (
+        content_type.startswith("image/")
+        or content_type.startswith("video/")
+        or content_type.startswith("audio/")
+    ):
+        return "max-age=1800"
     else:
         return "no-cache"
 
