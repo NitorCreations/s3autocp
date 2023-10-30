@@ -14,7 +14,6 @@
 - Python 3.9
 - `boto3` library
 - `brotli` library
-- `gzip` library
 - AWS credentials configured (typically via environment variables or AWS CLI)
 
 ## Installation
@@ -27,8 +26,9 @@ pip install boto3 brotli
 
 ## Usage
 
-```python s3autocp.py <source_directory> <destination_s3_url>```
+```python s3autocp.py [-c/--compress] <source_directory> <destination_s3_url>```
 
+- `-c/--compress`: Enable compression for appropriate file types
 - `<source_directory>`: The local directory you wish to copy to S3.
 - `<destination_s3_url>`: The S3 URL where files will be uploaded, in the format `s3://bucket-name/path`.
 
@@ -42,7 +42,7 @@ This command will copy all files from `./my-local-dir` to the S3 bucket `my-buck
 
 1. The script scans the source directory recursively for files.
 2. Determines the MIME type for each file.
-3. Compresses eligible files using Brotli and Gzip.
+3. If you are using the `-c/--compress`-flag, compresses eligible files using Brotli and Gzip.
 4. Uploads files to the specified S3 bucket with appropriate Content-Type and Cache-Control headers.
 
 ## Contributing
