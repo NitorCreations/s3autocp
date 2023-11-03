@@ -288,12 +288,7 @@ def s3autocp():
     bucket_name, path = _get_bucket_name_and_path(
         destination=destination, source=source
     )
-    # sort filenames so that files matching index.htm are last.
-    # This ensures that new index.html pointing to new hashed files is not served prior to hashed files being uploaded
-    filenames = sorted(
-        _get_filenames(source_dir=source),
-        key=lambda filename: "index.htm" in filename,
-    )
+    filenames = _get_filenames(source_dir=source)
     if compress:
         print("compressing files...", end="")
         pool = multiprocessing.Pool()
@@ -305,7 +300,12 @@ def s3autocp():
             if filename:
                 filenames += [f"{filename}.br", f"{filename}.gz"]
     filenames = set(filenames)
-    for filename in sorted(filenames):
+    # sort filenames so that files matching index.htm are last.
+    # This ensures that new index.html pointing to new hashed files is not served prior to hashed files being uploaded
+    for filename in sorted(
+        filenames,
+        key=lambda filename: "index.htm" in filename,
+    ):
         _upload(filename=filename, bucket=bucket_name, path=path, source_dir=source)
 
 
