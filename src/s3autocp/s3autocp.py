@@ -288,7 +288,7 @@ def s3autocp():
     bucket_name, path = _get_bucket_name_and_path(
         destination=destination, source=source
     )
-    filenames = _get_filenames(source_dir=source)
+    filenames = list(_get_filenames(source_dir=source))
     if compress:
         print("compressing files...", end="")
         pool = multiprocessing.Pool()
