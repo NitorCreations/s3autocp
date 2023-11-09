@@ -42,7 +42,7 @@ MIME_TYPES = {
     "htm": "text/html",
     "html": "text/html",
     "ico": "image/vnd.microsoft.icon",
-    "ics": "ext/calendar",
+    "ics": "text/calendar",
     "jar": "application/java-archive",
     "jpeg": "image/jpeg",
     "jpg": "image/jpeg",
