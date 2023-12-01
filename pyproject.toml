@@ -21,3 +21,5 @@ dependencies = ["boto3", "brotli"]
 
 [project.urls]
 "Homepage" = "https://github.com/NitorCreations/s3autocp"
+[project.scripts]
+s3autocp = "s3autocp:main"
