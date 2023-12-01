@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "s3autocp"
-version = "0.2.3"
+version = "0.2.4"
 authors = [
   { name = "Jouni Tenhunen", email = "jouni.tenhunen@nitor.com" },
   { name = "Kalle Ahlström", email = "kalle.ahlstrom@nitor.com" },
