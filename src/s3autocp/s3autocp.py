@@ -3,12 +3,11 @@ import brotli
 import gzip
 import json
 import multiprocessing
+from concurrent.futures import ThreadPoolExecutor
 import os
 import re
-from collections.abc import Callable
 from glob import iglob
 from typing import Iterator, Tuple
-
 
 import boto3
 
@@ -248,9 +247,6 @@ def _get_bucket_name_and_path(destination: str, source: str) -> Tuple[str, str]:
 def _copy(filename: str, bucket: str, key: str) -> None:
     content_type = _get_mime_type(filename=filename)
     cache_control = _get_cache_control(filename=filename, content_type=content_type)
-    print(
-        f"upload: {filename} s3://{bucket}/{key}, Content-Type={content_type}, Cache-Control={cache_control}"
-    )
     res = s3_client.put_object(
         Body=open(filename, "rb"),
         Bucket=bucket,
@@ -262,6 +258,9 @@ def _copy(filename: str, bucket: str, key: str) -> None:
         raise RuntimeError(
             f"Unable to upload {filename}. Response:\n{json.dumps(res, indent=2, default=str)}"
         )
+    print(
+        f"upload: {filename} s3://{bucket}/{key}, Content-Type={content_type}, Cache-Control={cache_control}"
+    )
 
 
 def _compress_file(filename: str) -> list[str]:
@@ -304,12 +303,21 @@ def s3autocp():
             if filename:
                 filenames += [f"{filename}.br", f"{filename}.gz"]
     filenames = set(filenames)
-    # sort filenames so that files matching index.htm are last.
-    # This ensures that new index.html pointing to new hashed files is not served prior to hashed files being uploaded
-    for filename in sorted(
-        filenames,
-        key=lambda filename: "index.htm" in filename,
-    ):
+    # group files on files matching index.htm.
+    # This is to make sure that new index.html pointing to new hashed files is not served prior to hashed files being uploaded
+    files = [filename for filename in filenames if "index.htm" not in filename]
+    index_files = [filename for filename in filenames if "index.htm" in filename]
+    with ThreadPoolExecutor() as pool:
+        for filename in files:
+            pool.submit(
+                _upload,
+                filename=filename,
+                bucket=bucket_name,
+                path=path,
+                source_dir=source,
+            )
+        pool.shutdown()
+    for filename in index_files:
         _upload(filename=filename, bucket=bucket_name, path=path, source_dir=source)
 
 
