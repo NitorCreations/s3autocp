@@ -38,6 +38,7 @@ MIME_TYPES = {
     "epub": "application/epub+zip",
     "gz": "application/gzip",
     "gif": "image/gif",
+    "geojson": "application/geo+json",
     "htm": "text/html",
     "html": "text/html",
     "ico": "image/vnd.microsoft.icon",
