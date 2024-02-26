@@ -280,7 +280,7 @@ def _compress_file(filename: str) -> list[str]:
 
 
 def _upload(filename: str, bucket: str, path: str, source_dir: str) -> None:
-    key = f'{path}{filename.replace(source_dir, "").replace("//", "/")}'
+    key = f'{path}{filename.removeprefix(source_dir).replace("//", "/")}'
     # a hack to fix uploads going  "/" folder instead of root folder
     if key.startswith("/"):
         key = key[1:]
