@@ -6,6 +6,7 @@ import multiprocessing
 from concurrent.futures import ThreadPoolExecutor
 import os
 import re
+import sys
 from glob import iglob
 from typing import Iterator, Tuple
 
@@ -293,6 +294,9 @@ def s3autocp():
         destination=destination, source=source
     )
     filenames = list(_get_filenames(source_dir=source))
+    if not filenames:
+        print(f"Error: no files at {source}")
+        sys.exit(1)
     if compress:
         print("compressing files...", end="")
         pool = multiprocessing.Pool()
