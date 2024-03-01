@@ -11,11 +11,13 @@ from glob import iglob
 from typing import Iterator, Tuple
 
 import boto3
+import botocore.exceptions
 
 DEFAULT_CONTENT_TYPE = "binary/octet-stream"
 HASH_IN_FILENAME_REGEX = re.compile(r".*[\.\-][0-9a-fA-F]+[\..*]+")
 
 s3_client = boto3.client("s3")
+sts_client = boto3.client("sts")
 
 MIME_TYPES = {
     "aac": "audio/aac",
@@ -288,7 +290,19 @@ def _upload(filename: str, bucket: str, path: str, source_dir: str) -> None:
     _copy(filename=filename, bucket=bucket, key=key)
 
 
+def _check_aws_credentials() -> None:
+    try:
+        sts_client.get_caller_identity()
+    except botocore.exceptions.NoCredentialsError as error:
+        print("Error: Unable to locate AWS credentials.")
+        sys.exit(1)
+    except botocore.exceptions.UnauthorizedSSOTokenError as error:
+        print("Error: The SSO session associated with this profile has expired.")
+        sys.exit(1)
+
+
 def s3autocp():
+    _check_aws_credentials()
     compress, source, destination = _get_args()
     bucket_name, path = _get_bucket_name_and_path(
         destination=destination, source=source
