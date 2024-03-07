@@ -239,7 +239,7 @@ def _get_cache_control(filename: str, content_type: str) -> str:
         return "no-cache"
 
 
-def _get_bucket_name_and_path(destination: str, source: str) -> Tuple[str, str]:
+def _get_bucket_name_and_path(destination: str) -> Tuple[str, str]:
     if destination.startswith("s3://"):
         destination = destination[5:]
     parts = destination.split("/")
@@ -293,20 +293,18 @@ def _upload(filename: str, bucket: str, path: str, source_dir: str) -> None:
 def _check_aws_credentials() -> None:
     try:
         sts_client.get_caller_identity()
-    except botocore.exceptions.NoCredentialsError as error:
-        print("Error: Unable to locate AWS credentials.")
+    except botocore.exceptions.NoCredentialsError as e:
+        print(f"Error: Unable to locate AWS credentials: {e}")
         sys.exit(1)
-    except botocore.exceptions.UnauthorizedSSOTokenError as error:
-        print("Error: The SSO session associated with this profile has expired.")
+    except botocore.exceptions.UnauthorizedSSOTokenError as e:
+        print(f"Error: The SSO session associated with this profile has expired: {e}")
         sys.exit(1)
 
 
-def s3autocp():
+def s3autocp() -> None:
     _check_aws_credentials()
     compress, source, destination = _get_args()
-    bucket_name, path = _get_bucket_name_and_path(
-        destination=destination, source=source
-    )
+    bucket_name, path = _get_bucket_name_and_path(destination=destination)
     filenames = list(_get_filenames(source_dir=source))
     if not filenames:
         print(f"Error: no files at {source}")
